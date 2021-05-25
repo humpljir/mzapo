@@ -28,11 +28,14 @@
 
 int main(int argc, char *argv[])
 {
+  parlcd_hx8357_init("co je to mem_base a jak to ziskam");
 
   /* Serialize execution of applications */
 
   /* Try to acquire lock the first */
   if (serialize_lock(1) <= 0) {
+
+    void parlcd_write_data("co je to mem_base a jak to ziskam", "System is occupied\n");
     printf("System is occupied\n");
 
     if (1) {
@@ -43,10 +46,12 @@ int main(int argc, char *argv[])
   }
 
   printf("Hello world\n");
+  void parlcd_write_data("co je to mem_base a jak to ziskam", "Hello world\n");
 
   sleep(4);
 
   printf("Goodbye world\n");
+  void parlcd_write_data("co je to mem_base a jak to ziskam", "Goodbye world\n");
 
   /* Release the lock */
   serialize_unlock();
