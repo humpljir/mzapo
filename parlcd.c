@@ -4,7 +4,7 @@
 
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT 320
-#define MAIN_COLOR #ffffff
+#define MAIN_COLOR "000000"
 
 void parlcd_write_layer(unsigned char *parlcd_mem_base)
 {
@@ -21,7 +21,7 @@ void parlcd_write_layer(unsigned char *parlcd_mem_base)
     }
 }
 
-void draw_char(int x, int y, char ch, unsigned short color)
+void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t fdes)
 {
     int w = char_width(ch);
     const font_bits_t *ptr;

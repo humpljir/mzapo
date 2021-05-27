@@ -28,12 +28,12 @@ typedef uint16_t font_bits_t;
 
 /* builtin C-based proportional/fixed font structure*/
 typedef struct {
-        char *                  name;           /* font name*/
-        int                             maxwidth;       /* max width in pixels*/
-        unsigned int    height;         /* height in pixels*/
-        int                             ascent;         /* ascent (baseline) height*/
-        int                             firstchar;      /* first character in bitmap*/
-        int                             size;           /* font size in characters*/
+        char *       name;           /* font name*/
+        int          maxwidth;       /* max width in pixels*/
+        unsigned int height;         /* height in pixels*/
+        int          ascent;         /* ascent (baseline) height*/
+        int          firstchar;      /* first character in bitmap*/
+        int          size;           /* font size in characters*/
         const font_bits_t *bits;        /* 16-bit right-padded bitmap data*/
         const uint32_t  *offset;        /* offsets into bitmap data*/
         const unsigned char *width;     /* character widths or 0 if fixed*/
