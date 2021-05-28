@@ -1,0 +1,4 @@
+zkompiluj na svuj stroj pomoci 'make l' (l jako local, chapes..)
+nazev .gcode souboru zadavan jako argument
+neni to jeste hotove, pro tebe asi bude dulezita struktura layer_t v gcode.h
+
