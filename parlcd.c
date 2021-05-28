@@ -1,5 +1,6 @@
 #include "parlcd.h"
 #include "font_types.h"
+#include <math.h>
 #include <stdio.h>
 
 #define SCREEN_WIDTH 480
@@ -60,12 +61,74 @@ void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t *f
 
 void draw_string(int x, int y, char string[], unsigned short color, font_descriptor_t *fdes)
 {
-    int i=0;
-    while (string[i]!='\0')
+    int i = 0;
+    while (string[i] != '\0')
     {
-        draw_char(x,y,string[i],color,fdes);
-        x+=(fdes->maxwidth+FONT_SPACING);
+        draw_char(x, y, string[i], color, fdes);
+        x += (fdes->maxwidth + FONT_SPACING);
         i++;
+    }
+}
+
+calculate_vector(int *x, int *y, int x1, int y1, int x2, int y2)
+{
+    x = x2 - x1;
+    y = y2 - y1;
+}
+
+int calculate_constant(int x1, int y1, int x2, int y2)
+{
+    int c = -1 * (x2 * x1 + y2 * y1);
+    return c;
+}
+
+    void draw_line(int x1, int y1, int x2, int y2, unsigned short color)
+{
+    int c = 0, a = 0, b= 0;
+    calculate_vector(&a, &b, x1, y1, x2, y2);
+    c = calculate_constant(a, b, x2, y2);
+    if (x1 == x2)
+    {
+        if (y1 < y2)
+        {
+            while (y1 < y2)
+            {
+                draw_pixel(x1, y1, color);
+                y1++;
+            }
+        }
+        else if (y1 > y2)
+        {
+            while (y1 > y2)
+            {
+                draw_pixel(x1, y1, color);
+                y1--;
+            }
+        }
+        else
+        {
+            draw_pixel(x1, y1, color);
+        }
+    }
+    else if (x1 < x2)
+    {
+        while (x1 < x2)
+        {
+            double y_double = (-c - (a * x1)) / b;
+            draw_pixel(x1, floor(y_double), color);
+            draw_pixel(x1, ceil(y_double), color);
+            x1++;
+        }
+    }
+    else
+    {
+        while (x1 > x2)
+        {
+            double y_double = (-c - (a * x1)) / b;
+            draw_pixel(x1, floor(y_double), color);
+            draw_pixel(x1, ceil(y_double), color);
+            x1--;
+        }
     }
 }
 
