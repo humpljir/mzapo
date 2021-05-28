@@ -11,7 +11,6 @@
   If this text is there I want 10 points subtracted from final
   evaluation.
 
- *******************************************************************/
 
 #define _POSIX_C_SOURCE 200112L
 
@@ -29,16 +28,12 @@
 int main(int argc, char *argv[])
 {
 
-  /* Serialize execution of applications */
-
-  /* Try to acquire lock the first */
   if (serialize_lock(1) <= 0) {
 
     printf("System is occupied\n");
 
     if (1) {
       printf("Waitting\n");
-      /* Wait till application holding lock releases it or exits */
       serialize_lock(0);
     }
   }
@@ -49,8 +44,9 @@ int main(int argc, char *argv[])
 
   printf("Goodbye world\n");
 
-  /* Release the lock */
   serialize_unlock();
 
   return 0;
 }
+
+******************************************************************* /
