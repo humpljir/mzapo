@@ -15,6 +15,9 @@ file_t file = {NULL};
 
 void init_cmd(command *cmd)
 {
+  *cmd = (command) {0};
+  return;
+  /*
   cmd->G.flag = false;
   cmd->G.decimal = 0;
   cmd->M.flag = false;
@@ -33,6 +36,7 @@ void init_cmd(command *cmd)
   cmd->S.decimal = 0;
   cmd->T.flag = false;
   cmd->T.decimal = 0;
+  */
 }
 
 bool parse_line(command *cmd, char *line, int size)
@@ -157,34 +161,51 @@ void process_cmd(command *cmd)  // get args and simulate machine
 
 void move(command *cmd)  // expecting command to be G0 or G1 TODO: vymyslet separaci vrstev
 {
+  if (! (cmd->X.flag || cmd->Y.flag || cmd->Z.flag)) return;  // don't care about other than xyz movements
   float conversion_ratio = setting.mm ? 1 : 2.54;
   //model.layers[model.layer_count].length++;  //increment movements in current layer
   if (setting.absolute)
     {
       if (cmd->X.flag) machine.x_coord = cmd->X.decimal * conversion_ratio;
       if (cmd->Y.flag) machine.y_coord = cmd->Y.decimal * conversion_ratio;
-      if (cmd->Z.flag)
+      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord)
         {
+          //fprintf(stderr, "layer %d done, starting new layer\n", model.layer_count);
+          //fprintf(stderr, "layer_length of layer %d is: %d, starting new layer\n\n", model.layer_count, model.layers[model.layer_count].length);
           machine.z_coord = cmd->Z.decimal * conversion_ratio;
-          model.layers[model.layer_count++].file_seek = ftell(file.fd);
+          model.layers[++model.layer_count].file_seek = ftell(file.fd);
+          pos_t new_start_point;
+          new_start_point.x = machine.x_coord;
+          new_start_point.y = machine.y_coord;
+          model.layers[model.layer_count].start_point = new_start_point;
+          //fprintf(stderr, "start point of the new layer is: X: %f Y: %f\n",new_start_point.x, new_start_point.y);
         }
       else  // Z flag is not set
         {
-          model.layers[model.layer_count].length++;  //increment movements in current layer
+          //model.layers[model.layer_count].length++;  //increment movements in current layer
+          //fprintf(stderr, "increasing layer_count at layer num: %d\n", model.layer_count);
         }
     }
   else
     {
       if (cmd->X.flag) machine.x_coord += cmd->X.decimal * conversion_ratio;
       if (cmd->Y.flag) machine.y_coord += cmd->Y.decimal * conversion_ratio;
-      if (cmd->Z.flag)
+      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord)
         {
+          //fprintf(stderr, "layer %d done, starting new layer\n", model.layer_count);
+          //fprintf(stderr, "layer_length of layer %d is: %d, starting new layer\n\n", model.layer_count, model.layers[model.layer_count].length);
           machine.z_coord += cmd->Z.decimal * conversion_ratio;
-          model.layers[model.layer_count++].file_seek = ftell(file.fd);
+          model.layers[++model.layer_count].file_seek = ftell(file.fd);
+          pos_t new_start_point;
+          new_start_point.x = machine.x_coord;
+          new_start_point.y = machine.y_coord;
+          model.layers[model.layer_count].start_point = new_start_point;
+          //fprintf(stderr, "start point of the new layer is: X: %f Y: %f\n",new_start_point.x, new_start_point.y);
         }
       else
         {
-          model.layers[model.layer_count].length++;  //increment movements in current layer
+          //model.layers[model.layer_count].length++;  //increment movements in current layer
+          //fprintf(stderr, "increasing layer.length at layer num: %d\n", model.layer_count);
         }
     }
   if (machine.x_coord > model.x_coord_max) model.x_coord_max = machine.x_coord;
@@ -195,15 +216,39 @@ void move(command *cmd)  // expecting command to be G0 or G1 TODO: vymyslet sepa
 
   if (machine.z_coord > model.z_coord_max) model.z_coord_max = machine.z_coord;
   if (machine.z_coord < model.z_coord_min && machine.y_coord) model.z_coord_min = machine.z_coord;
+  //if (cmd->X.flag || cmd->Y.flag || cmd->Z.flag)
+    {
+      //fprintf(stderr, "increasing layer.length at layer num: %d\n", model.layer_count);
+      model.layers[model.layer_count].length++;  //increment movements in current layer
+    }
 }
 
 void print_cmd(command *cmd)
 {
   fprintf(stderr,
           "printing command: G%g M%g X%g Y%g Z%g F%g E%g S%g T%g\n",
-          cmd->G.flag ? cmd->G.decimal : -1,cmd->M.flag ? cmd->M.decimal : -1,
-          cmd->X.decimal, cmd->Y.decimal, cmd->Z.decimal, cmd->F.decimal,
-          cmd->E.decimal, cmd->S.decimal, cmd->T.decimal);
+          cmd->G.flag ? cmd->G.decimal : -1,
+          cmd->M.flag ? cmd->M.decimal : -1,
+          cmd->X.flag ? cmd->X.decimal : -1,
+          cmd->Y.flag ? cmd->Y.decimal : -1,
+          cmd->Z.flag ? cmd->Z.decimal : -1,
+          cmd->F.flag ? cmd->F.decimal : -1,
+          cmd->E.flag ? cmd->E.decimal : -1,
+          cmd->S.flag ? cmd->S.decimal : -1,
+          cmd->T.flag ? cmd->T.decimal : -1);
+  /*
+  fprintf(stderr,
+          "command flags: G: %s M: %s X: %s Y: %s Z: %s F: %s E: %s S: %s T: %s\n",
+          cmd->G.flag ? "true" : "false",
+          cmd->M.flag ? "true" : "false",
+          cmd->X.flag ? "true" : "false",
+          cmd->Y.flag ? "true" : "false",
+          cmd->Z.flag ? "true" : "false",
+          cmd->F.flag ? "true" : "false",
+          cmd->E.flag ? "true" : "false",
+          cmd->S.flag ? "true" : "false",
+          cmd->T.flag ? "true" : "false");
+          */
 }
 
 void print_stats(void)
@@ -237,10 +282,11 @@ bool init_file(char *filename)  //returns true on success, false on fialure
 
   char *line = NULL;
   size_t size = 0;
-  command cmd = {.Z.flag = true, .Z.decimal = 0};  // so the first layer is initialized
-  move(&cmd);
+  command cmd; // = {.Z.flag = true, .Z.decimal = 0};  // so the first layer is initialized
+  //move(&cmd);
   while (getline(&line, &size, file.fd) != -1)
     {
+      //fprintf(stderr, "%s", line);
       if (parse_line(&cmd, line, size))
         {
           //print_cmd(&cmd);
@@ -253,16 +299,14 @@ bool init_file(char *filename)  //returns true on success, false on fialure
   free(line);  // getline failed but line has to be freed
   file.size = ftell(file.fd);  // in bytes
   fseek(file.fd, 0, SEEK_SET);
-  print_stats();
-  /*
-  set_layer(&model.layers[1]);
-  print_layer(&model.layers[1]);
+  set_layer(&model.layers[5]);
+  print_layer(&model.layers[5]);
   for (int i = 0; i < 10; i++)
     {
       fprintf(stderr, "layer: %d, move_count: %d, file seek: %ld\n", i, model.layers[i].length, model.layers[i].file_seek);
     }
-  free_layer(&model.layers[1]);
-  */
+  free_layer(&model.layers[5]);
+  print_stats();
   return true;
 }
 
@@ -271,12 +315,20 @@ void close_file(void)
   fclose(file.fd);
 }
 
-void set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points
+bool set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points
 {
   fseek(file.fd, layer->file_seek, SEEK_SET);
-  int move_count = 0;
-  command cmd;
   layer->points = (pos_t *) malloc(sizeof(pos_t) * layer->length);
+  if (layer->points == NULL)
+    {
+      fprintf(stderr, "Error: set_layer: failed to malloc\n");
+      return false;
+    }
+  int move_count = 0;
+  layer->points[move_count].x = layer->start_point.x;
+  layer->points[move_count].y = layer->start_point.y;
+  move_count++;
+  command cmd;
   while (move_count < layer->length)
     {
       get_cmd(&cmd, true);  //get next move command
@@ -284,6 +336,17 @@ void set_layer(layer_t *layer)  // take layer->file_seek and layer->length and a
       layer->points[move_count].y = cmd.Y.decimal;
       move_count++;
     }
+  return true;
+}
+
+bool set_layer_by_num(int layer_num)  // take layer->file_seek and layer->length and allocate and write points
+{
+  return set_layer(&model.layers[layer_num]);
+}
+
+layer_t *get_layer(int layer_num)
+{
+  return &model.layers[layer_num];
 }
 
 void free_layer(layer_t *layer)
@@ -314,7 +377,8 @@ bool get_cmd(command *cmd, bool move_only)  // reads next command from file.fd i
               return true;
             }
           else if (cmd->G.flag &&
-                  ((int) cmd->G.decimal == G0 || (int) cmd->G.decimal == G1))
+                  ((int) cmd->G.decimal == G0 || (int) cmd->G.decimal == G1) &&
+                  (cmd->X.flag || cmd->Y.flag))
             {
               free(line);
               return true;
