@@ -1,6 +1,7 @@
 #include "parlcd.h"
 #include "mzapo_parlcd.h"
 #include "font_types.h"
+#include "gcode.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -11,7 +12,7 @@
 #define FONT_SPACING 0
 #define BACKGROUND_COLOR 000000
 
-void parlcd_write_layer(unsigned char *parlcd_mem_base)
+void parlcd_write_layer(unsigned char *parlcd_mem_base, layer_t layer, unsigned short color)
 {
     /*
     //probably getting pointer to fst point of movement in layer as a parameter
@@ -29,6 +30,13 @@ void parlcd_write_layer(unsigned char *parlcd_mem_base)
         }
     }
     */
+
+    int i=0;
+
+    for (i=0;i<layer.length;i++)
+    {
+        draw_line(layer.points[i].x,layer.points[i].y,layer.points[i+1].x,layer.points[i+1].y,color);
+    }
 }
 
 void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t *fdes)
