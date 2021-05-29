@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 
 #define MIN_FRAME -5 //mm  // when negative not used
 #define MAX_LAYERS 2000 //  supposing model will not hold more layers
@@ -122,10 +123,12 @@ void process_cmd(command *cmd);  // get args and simulate machine
 void print_cmd(command *cmd);
 void move(command *cmd);  // expecting command to be G0 or G1
 void print_stats(void);
-bool init_file(char *filename);  //returns true on success, false on fialure
+bool init_file(char *filename);  //returns true on success, false on failure
 void close_file(void);
 void set_defualt_vals(void);
 bool set_layer(layer_t *layer);  // take layer->file_seek and layer->length and allocate and write points
+bool set_layer_by_num(int layer_num);  // takes index to model.layers[]
+layer_t *get_layer(int layer_num);
 void free_layer(layer_t *layer);
 void print_layer(layer_t *layer);
 bool get_cmd(command *cmd, bool move_only);  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise

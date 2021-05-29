@@ -7,7 +7,7 @@ CXXFLAGS = -g -std=gnu++11 -O1 -Wall
 LDFLAGS = -lrt -lpthread
 #LDLIBS = -lm
 
-SOURCES = main.c gcode.c
+SOURCES = main.c gcode.c gui.c
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
@@ -67,7 +67,7 @@ ifneq ($(filter %.cpp,$(SOURCES)),)
 endif
 
 clean:
-	rm -f *.o *.a $(OBJECTS) $(TARGET_EXE) connect.gdb depend
+	rm -f *.o *.a $(OBJECTS) $(TARGET_EXE) local_$(TARGET_EXE) connect.gdb depend out
 
 copy-executable: $(TARGET_EXE)
 	ssh $(SSH_OPTIONS) -t $(TARGET_USER)@$(TARGET_IP) killall gdbserver 1>/dev/null 2>/dev/null || true

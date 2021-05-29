@@ -339,6 +339,16 @@ bool set_layer(layer_t *layer)  // take layer->file_seek and layer->length and a
   return true;
 }
 
+bool set_layer_by_num(int layer_num)  // take layer->file_seek and layer->length and allocate and write points
+{
+  return set_layer(&model.layers[layer_num]);
+}
+
+layer_t *get_layer(int layer_num)
+{
+  return &model.layers[layer_num];
+}
+
 void free_layer(layer_t *layer)
 {
   if (layer->points != NULL) free(layer->points);
