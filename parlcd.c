@@ -1,4 +1,5 @@
 #include "parlcd.h"
+#include "mzapo_parlcd.h"
 #include "font_types.h"
 #include <math.h>
 #include <stdio.h>
@@ -6,12 +7,13 @@
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT 320
 #define MAX_LINE 32
-#define MAIN_COLOR "ffffff"
+#define MAIN_COLOR 999999
 #define FONT_SPACING 0
-#define BACKGROUND_COLOR "000000"
+#define BACKGROUND_COLOR 000000
 
 void parlcd_write_layer(unsigned char *parlcd_mem_base)
 {
+    /*
     //probably getting pointer to fst point of movement in layer as a parameter
     bool lcd[SCREEN_WIDTH][SCREEN_HEIGHT] = {0};
     parlcd_write_cmd(parlcd_mem_base, 0x2c);
@@ -26,11 +28,12 @@ void parlcd_write_layer(unsigned char *parlcd_mem_base)
             }
         }
     }
+    */
 }
 
 void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t *fdes)
 {
-    int w = char_width(ch);
+    int w = fdes->maxwidth;
     const font_bits_t *ptr;
     if ((ch >= fdes->firstchar) &&
         (ch - fdes->firstchar < fdes->size))
@@ -70,10 +73,10 @@ void draw_string(int x, int y, char string[], unsigned short color, font_descrip
     }
 }
 
-calculate_vector(int *x, int *y, int x1, int y1, int x2, int y2)
+void calculate_vector(int *x, int *y, int x1, int y1, int x2, int y2)
 {
-    x = x2 - x1;
-    y = y2 - y1;
+    *x = x2 - x1;
+    *y = y2 - y1;
 }
 
 int calculate_constant(int x1, int y1, int x2, int y2)

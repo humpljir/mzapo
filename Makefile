@@ -7,7 +7,7 @@ CXXFLAGS = -g -std=gnu++11 -O1 -Wall
 LDFLAGS = -lrt -lpthread
 #LDLIBS = -lm
 
-SOURCES = main.c ZDE UPRAVTE PANE JIRI
+SOURCES = main.c mzapo_parlcd.c mzapo_phys.c serialize_lock.c font_rom8x16.c font_prop14x16.c
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
