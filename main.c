@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
         exit(1);
 
     parlcd_hx8357_init(parlcd_mem_base);
+    *(volatile uint16_t *)(parlcd_mem_base + PARLCD_REG_CMD_o) = 0x2c; //this should move pointer on lcd to [0,0]
 
     parlcd_write_cmd(parlcd_mem_base, 0x2c);
     for (i = 0; i < 320; i++)
