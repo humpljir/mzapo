@@ -5,9 +5,9 @@ CPPFLAGS = -I .
 CFLAGS =-g -std=gnu99 -O1 -Wall
 CXXFLAGS = -g -std=gnu++11 -O1 -Wall
 LDFLAGS = -lrt -lpthread
-#LDLIBS = -lm
+LDLIBS = -lm
 
-SOURCES = main.c mzapo_parlcd.c mzapo_phys.c serialize_lock.c font_rom8x16.c font_prop14x16.c
+SOURCES = main.c mzapo_parlcd.c mzapo_phys.c serialize_lock.c font_rom8x16.c font_prop14x16.c parlcd.c
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
@@ -93,6 +93,6 @@ debug: copy-executable $(TARGET_EXE)
 	ddd --debugger gdb-multiarch -x connect.gdb $(TARGET_EXE)
 
 l:
-	clang -std=gnu99 -o local_$(TARGET_EXE) -Wall -g -O0 -pedantic $(SOURCES)
+	clang $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o local_$(TARGET_EXE) $(SOURCES)
 
 -include depend

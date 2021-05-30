@@ -1,9 +1,10 @@
+#include <math.h>
+#include <stdio.h>
+
 #include "parlcd.h"
 #include "mzapo_parlcd.h"
 #include "font_types.h"
 #include "gcode.h"
-#include <math.h>
-#include <stdio.h>
 
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT 320
@@ -12,7 +13,7 @@
 #define FONT_SPACING 0
 #define BACKGROUND_COLOR 000000
 
-void parlcd_write_layer(unsigned char *parlcd_mem_base, layer_t layer, unsigned short color)
+void parlcd_write_layer(unsigned char *parlcd_mem_base, layer_t layer, uint16_t color)
 {
     /*
     //probably getting pointer to fst point of movement in layer as a parameter
@@ -24,7 +25,7 @@ void parlcd_write_layer(unsigned char *parlcd_mem_base, layer_t layer, unsigned 
         {
             if (lcd[SCREEN_WIDTH][SCREEN_HEIGHT])
             {
-                unsigned short c = MAIN_COLOR;
+                uint16_t c = MAIN_COLOR;
                 parlcd_write_data(parlcd_mem_base, c);
             }
         }
@@ -39,7 +40,7 @@ void parlcd_write_layer(unsigned char *parlcd_mem_base, layer_t layer, unsigned 
     }
 }
 
-void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t *fdes)
+void draw_char(int x, int y, char ch, uint16_t color, font_descriptor_t *fdes)
 {
     int w = fdes->maxwidth;
     const font_bits_t *ptr;
@@ -70,7 +71,7 @@ void draw_char(int x, int y, char ch, unsigned short color, font_descriptor_t *f
     }
 }
 
-void draw_string(int x, int y, char string[], unsigned short color, font_descriptor_t *fdes)
+void draw_string(int x, int y, char string[], uint16_t color, font_descriptor_t *fdes)
 {
     int i = 0;
     while (string[i] != '\0')
@@ -93,7 +94,7 @@ int calculate_constant(int x1, int y1, int x2, int y2)
     return c;
 }
 
-    void draw_line(int x1, int y1, int x2, int y2, unsigned short color)
+    void draw_line(int x1, int y1, int x2, int y2, uint16_t color)
 {
     int c = 0, a = 0, b= 0;
     calculate_vector(&a, &b, x1, y1, x2, y2);
@@ -154,4 +155,8 @@ void parlcd_clean(unsigned char *parlcd_mem_base)
             parlcd_write_data(parlcd_mem_base, c);
         }
     }
+}
+
+void draw_pixel(int x1, int y1, uint16_t color)  // michal
+{
 }
