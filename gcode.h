@@ -1,6 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef GCODE_H
+#define GCODE_H
+
 #define MIN_FRAME -5 //mm  // when negative not used
 #define MAX_LAYERS 2000 //  supposing model will not hold more layers
 
@@ -132,3 +135,5 @@ layer_t *get_layer(int layer_num);
 void free_layer(layer_t *layer);
 void print_layer(layer_t *layer);
 bool get_cmd(command *cmd, bool move_only);  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
+
+#endif

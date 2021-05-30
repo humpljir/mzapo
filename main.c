@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     if (mem_base == NULL)
         exit(1);
 
-    struct timespec loop_delay = {.tv_sec = 0, .tv_nsec = 20 * 1000 * 1000};
+    struct timespec loop_delay = {.tv_sec = 0, .tv_nsec = 500 * 1000 * 1000};
     for (i = 0; i < 30; i++)
     {
         *(volatile uint32_t *)(mem_base + SPILED_REG_LED_LINE_o) = val_line;

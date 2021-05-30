@@ -299,6 +299,7 @@ bool init_file(char *filename)  //returns true on success, false on fialure
   free(line);  // getline failed but line has to be freed
   file.size = ftell(file.fd);  // in bytes
   fseek(file.fd, 0, SEEK_SET);
+  /*
   set_layer(&model.layers[5]);
   print_layer(&model.layers[5]);
   for (int i = 0; i < 10; i++)
@@ -306,6 +307,7 @@ bool init_file(char *filename)  //returns true on success, false on fialure
       fprintf(stderr, "layer: %d, move_count: %d, file seek: %ld\n", i, model.layers[i].length, model.layers[i].file_seek);
     }
   free_layer(&model.layers[5]);
+  */
   print_stats();
   return true;
 }
