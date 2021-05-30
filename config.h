@@ -3,10 +3,11 @@
 
 typedef struct
 {
+    //global settings
     unsigned int color_background;
     unsigned int color_main_theme;
 
-    //maybe even setting up the source file there?
+    //maybe add even selected source file here?
 } config;
 
 extern config global;
