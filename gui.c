@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "gui.h"
 #include "gcode.h"
 
@@ -17,9 +19,9 @@
                                                                                 
                *                     *                     *   \^                                 
              *****                 *****                 *****  |                               
-             **R**                 **G**                 **B**   select layer by rotating the knob                               
-             *****                 *****                 *****  |                               
-               *                     *                     *   /                                
+             **R**                 **G**                 **B**   select layer by 
+             *****                 *****                 *****  |rotating the knob                                                             
+               *                     *                     *   / when in WIN3                  
             <------                EXIT                 ------>                   
              CLICK               ON CLICK                CLICK                     
                                                                                 
@@ -37,13 +39,20 @@ struct
   int x_size;
   int y_size;
   int z_size;
-  layer_t *layer;
+  layer_t *layer;  // active layer
 } disp_state = {WIN1};
 
-void win_right(void)  // switch to window on right side from the active window (does nothing when in the rightmost one)
+void win_right(void)  // switch to the window on the right side from the active window
 {
-  if (disp_state.active_win == WIN_NUM - 1) return;
+  if (disp_state.active_win == WIN_NUM - 1) return;  //do nothing
   disp_state.active_win += 1;
+  redraw();
+}
+
+void win_left(void)  // switch to the window on the left side from the active window
+{
+  if (disp_state.active_win == 0) return;  //do nothing
+  disp_state.active_win -= 1;
   redraw();
 }
 
@@ -51,17 +60,14 @@ void redraw(void)  // redraws display according to disp_state
 {
 }
 
-void init_gui(char *filename,
-          int filesize,
-          int layer_count,
-          int x_size,
-          int y_size,
-          int z_size)
+void init_gui(file_t *file, model_t *model)
 {
   disp_state.active_win = WIN1;
-  disp_state.layer_count = layer_count;
-  disp_state.x_size = x_size;
-  disp_state.y_size = y_size;
-  disp_state.z_size = z_size;
+  disp_state.layer_count = model->layer_count;
+  disp_state.active_layer = 0;
+  disp_state.x_size = model->x_coord_min;
+  disp_state.y_size = model->y_coord_min;
+  disp_state.z_size = model->z_coord_min;
 }
+
 

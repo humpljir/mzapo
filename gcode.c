@@ -9,7 +9,7 @@
 
 
 machine_t machine = {0};
-model_t model = {.x_coord_min = 1000, .y_coord_min = 1000, .z_coord_min = 1000};
+model_t model = {.x_coord_min = 0, .y_coord_min = 0, .z_coord_min = 0};
 setting_t setting = {true, true, true};
 file_t file = {NULL};
 

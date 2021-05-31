@@ -5,9 +5,9 @@ CPPFLAGS = -I .
 CFLAGS =-g -std=gnu99 -O1 -Wall
 CXXFLAGS = -g -std=gnu++11 -O1 -Wall
 LDFLAGS = -lrt -lpthread
-#LDLIBS = -lm
+LDLIBS = -lm
 
-SOURCES = main.c gcode.c gui.c
+SOURCES = main.c mzapo_parlcd.c mzapo_phys.c gcode.c gui.c lcd.c
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
@@ -67,7 +67,7 @@ ifneq ($(filter %.cpp,$(SOURCES)),)
 endif
 
 clean:
-	rm -f *.o *.a $(OBJECTS) $(TARGET_EXE) local_$(TARGET_EXE) connect.gdb depend out
+	rm -f *.o *.a $(OBJECTS) $(TARGET_EXE) connect.gdb depend local_$(TARGET_EXE)
 
 copy-executable: $(TARGET_EXE)
 	ssh $(SSH_OPTIONS) -t $(TARGET_USER)@$(TARGET_IP) killall gdbserver 1>/dev/null 2>/dev/null || true
@@ -93,6 +93,6 @@ debug: copy-executable $(TARGET_EXE)
 	ddd --debugger gdb-multiarch -x connect.gdb $(TARGET_EXE)
 
 l:
-	clang -std=gnu99 -o local_$(TARGET_EXE) -Wall -g -O0 -pedantic $(SOURCES)
+	clang $(CFLAGS) $(LDFLAGS) $(LDLIBS) -o local_$(TARGET_EXE) $(SOURCES)
 
 -include depend

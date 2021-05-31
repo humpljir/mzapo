@@ -1,6 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#ifndef GCODE_H
+#define GCODE_H
+
 #define MIN_FRAME -5 //mm  // when negative not used
 #define MAX_LAYERS 2000 //  supposing model will not hold more layers
 
@@ -51,10 +54,20 @@ typedef struct
   double decimal;
 } field;
 
-typedef struct
+typedef struct // TODO: nejspis zrusit disp_x, dixp_y
 {
-  double x;  // x coord
-  double y;  // y coord
+  double x;  // x coord of the extruder
+  double y;  // y coord of the extruder
+  int disp_x;  // x coord into frame buffer
+  int disp_y;  // y coord into frame buffer
+/*
+       + > x
+(0, 0) v +-----                -----
+DISP   y |     |     EXTRUDER |     |
+         |     |            y |     |
+          -----       (0, 0)^ +-----
+                            + > x
+*/
 } pos_t;
 
 typedef struct
@@ -132,3 +145,5 @@ layer_t *get_layer(int layer_num);
 void free_layer(layer_t *layer);
 void print_layer(layer_t *layer);
 bool get_cmd(command *cmd, bool move_only);  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
+
+#endif
