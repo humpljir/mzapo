@@ -11,7 +11,7 @@
 #include "gcode.h"
 #include "lcd.h"
 
-#define PENIS "./penis.RGB565.bin"
+#define PENIS "./penis2.bin"
 
 #define ARGS_ERR 100
 #define FILE_ERR 101
@@ -31,14 +31,12 @@ int main(int argc, char **argv)
   gui_print_layer();
   gui_destroy();
   
+  
   /*
-  if (! lcd_init()) return LCD_INIT_ERR;
-  FILE *penis = fopen(PENIS, "r");
-  fprintf(stderr, "penis opened %s\n", penis ? "successfully" : "no good");
-  lcd_print_from_file(penis);
-  fclose(penis);
-  sleep(2);
-  lcd_test(0x001F);
+  if (! lcd_init()) return INIT_ERR;
+  lcd_print_from_file(PENIS);
+  //sleep(2);
+  //lcd_test(0x001F);
   lcd_destroy();
   */
   return 0;

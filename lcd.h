@@ -9,6 +9,8 @@
 
 #define COLOR_WHITE 0xFFFF
 #define COLOR_BLACK 0x0000
+#define COLOR_RED   0xF800
+#define COLOR_GREEN 0x07E0
 #define COLOR_BLUE  0x111F
 #define COLOR_PINK  0xF816
 
@@ -28,6 +30,6 @@ void lcd_draw_line(disp_pos_t start_point, disp_pos_t end_point, uint16_t color)
 void lcd_print_char(char c, disp_pos_t pos, font_descriptor_t *font, uint16_t color);
 void lcd_print_string(char *string, disp_pos_t pos, font_descriptor_t *font, uint16_t color);
 void lcd_print_frame_buffer(void);  // send content of frame_buffer to display
-void lcd_print_from_file(FILE *file);
+bool lcd_print_from_file(char *filename);
 
 #endif

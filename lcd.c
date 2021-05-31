@@ -248,19 +248,25 @@ void lcd_print_frame_buffer(void)  // send content of frame_buffer to display
     }
 }
 
-void lcd_print_from_file(FILE *file)
+bool lcd_print_from_file(char *filename)
     /* file must be 480x320x2 Bytes long,
        expected to be of RGB565 format */
 {
+  FILE *file = fopen(filename, "r");
+  if (file == NULL)
+    {
+      fprintf(stderr, "lcd_print_from_file(): can't open file\n");
+      return false;
+    }
   for (int i = 0; i < SCREEN_HEIGHT; i++)
     {
       for (int j = 0; j < SCREEN_WIDTH; j++)
         {
           unsigned char c1 = fgetc(file);
           unsigned char c2 = fgetc(file);
-          uint16_t color = c1;
+          uint16_t color = c2;
           color = color << 8;
-          color = color | c2;
+          color = color | c1;
           disp_pos_t pos;
           pos.x = j;
           pos.y = i;
@@ -269,4 +275,6 @@ void lcd_print_from_file(FILE *file)
       //lcd_print_frame_buffer();
     }
   lcd_print_frame_buffer();
+  fclose(file);
+  return true;
 }

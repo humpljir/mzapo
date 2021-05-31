@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <unistd.h>  // usleep
 
 #include "gui.h"
 #include "gcode.h"
 #include "lcd.h"
+#include "font_types.h"
 
 #define DISP_RATIO 1.5  // SCREEN_WIDTH/SCREEN_HEIGHT (480/320)
+#define GR_INTRO "./graphics/intro.bin"
+#define GR_BG_LABEL "./graphics/bg_label.bin"
+#define GR_BG_BLANK "./graphics/bg_blank.bin"
+
+#define INTRO_TIME 6 * 1000 * 1000  // us (== 2s)
 
 
 /*_______________________ ________________________ ________________________  
@@ -69,6 +76,12 @@ void gui_redraw(void)  // redraws display according to disp_state
 bool gui_start(void)
 {
   if (! lcd_init()) return false;
+  lcd_print_from_file(GR_INTRO);
+  usleep(INTRO_TIME);
+  lcd_print_from_file(GR_BG_LABEL);
+  disp_pos_t string_pos = {35, 95};
+  lcd_print_string("Choose file:", string_pos, &font_winFreeSystem14x16, COLOR_WHITE);
+  lcd_print_frame_buffer();
   return true;
 }
 
@@ -119,7 +132,7 @@ void gui_print_layer(void)  // print active layer
       pos_start = pos_end; //gui_map_extruder_to_disp(layer->points[i]);
       pos_end = gui_map_extruder_to_disp(layer->points[i + 1]);
       lcd_draw_line(pos_start, pos_end, COLOR_PINK);
-      //lcd_print_frame_buffer();  // send it to buffer
+      lcd_print_frame_buffer();  // send it to buffer
     }
   gcode_free_layer(layer);
   lcd_print_frame_buffer();  // send it to buffer
