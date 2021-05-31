@@ -4,21 +4,16 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <unistd.h>  // usleep
+#include <time.h>
 
 #include "mzapo_parlcd.h"
 #include "mzapo_phys.h"
 #include "mzapo_regs.h"
+#include "font_types.h"
 #include "lcd.h"
 
-#define SCREEN_WIDTH 480
-#define SCREEN_HEIGHT 320
 
-#define COLOR_WHITE 0xFFFF
-#define COLOR_BLACK 0x0000
-#define COLOR_BLUE  0x111F
-#define COLOR_PINK  0xF816
-
-#define DRAW_LINE_L_D 1/(SCREEN_WIDTH * 2.0)  // resolution of position
+//#define DRAW_LINE_L_D 1/(SCREEN_WIDTH * 2.0)  // resolution of position (depricated)
 
 struct
 {
@@ -61,7 +56,7 @@ bool lcd_destroy(void)
   return true;
 }
 
-void lcd_test(uint16_t color)
+void lcd_test(uint16_t color)  // TODO: smazat urazky a nevhodne vyjevy
 {
   assert(display.initialized);
   //paint left half of the top row with pink, the rigth half of the top row with white, the rest paint with the given color
@@ -97,6 +92,23 @@ void lcd_test(uint16_t color)
   end.x = SCREEN_WIDTH / 2- 1; end.y = SCREEN_HEIGHT * 3 / 4 - 1;
   lcd_draw_line(start, end, COLOR_BLUE);
   lcd_print_frame_buffer();
+  sleep (1);  // sleep for 1 sec
+  //test printing characters
+  lcd_paint_buffer(COLOR_BLACK);
+  disp_pos_t char_point = {10, 10};
+  lcd_print_char('a', char_point, &font_winFreeSystem14x16, COLOR_WHITE);
+  char_point = (disp_pos_t) {20, 10};
+  lcd_print_char('G', char_point, &font_winFreeSystem14x16, COLOR_PINK);
+  lcd_print_frame_buffer();
+  sleep(1);
+  //test printing strings
+  lcd_paint_buffer(COLOR_BLACK);
+  disp_pos_t string_point = {10, 10};
+  lcd_print_string("Pisovi smrdi nohy", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
+  string_point = (disp_pos_t) {10, 30};
+  lcd_print_string("Pisovi smrdi nohy", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
+  lcd_print_frame_buffer();
+
 }
 
 void lcd_paint(uint16_t color)
@@ -147,6 +159,15 @@ l is element of <0, 1>
   int y1 = start_point.y;
   int x2 = end_point.x;
   int y2 = end_point.y;
+  double l_d;
+  if (x2 != x1 || y2 != y1)
+    {
+      l_d = 1.0/sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)); // 1/norm(vector)
+    }
+  else
+    {
+      l_d = 1;
+    }
   disp_pos_t pos;
   //int count = 0;
   while (l < 1)
@@ -162,7 +183,54 @@ l is element of <0, 1>
       pos.x = round(x1 + l * (x2 - x1));
       pos.y = round(y1 + l * (y2 - y1));
       lcd_write_pixel(pos, color);
-      l += DRAW_LINE_L_D;  //TODO: variable size of DRAW_LINE_L_D (could be more effective for shorter lines
+      l += l_d;
+    }
+}
+
+void lcd_print_char(char c, disp_pos_t pos, font_descriptor_t *font, uint16_t color)
+{
+  assert((c >= font->firstchar) && (c - font->firstchar < font->size));
+  const font_bits_t *ptr;  // pointer into font bits (font_bits_t is uint16_t)
+  if (font->offset)
+    {
+      ptr = &font->bits[font->offset[c - font->firstchar]];
+    }
+  else
+    {
+      int bw = (font->maxwidth + 15) / 16;  // width of character in uint16-s
+      ptr = &font->bits[(c - font->firstchar) * bw * font->height];
+    }
+  unsigned char char_width = font->width ? font->width[c - font->firstchar] : font->maxwidth;  // width of printed character
+  //fprintf(stderr, "Width of character %c is %d\n", c, char_width);
+  for (int i = 0; i < font->height; i++)
+    {
+      font_bits_t val = *ptr;
+      for (int j = 0; j < char_width; j++)
+        {
+          if ((val & 0x8000) != 0)  // mask all, but the leftmost bit
+            {
+              lcd_write_pixel(pos, color);
+            }
+          pos.x++;
+          val = val << 1;  // shift row to left
+        }
+      pos.x -= char_width;
+      pos.y++;
+      ptr++;
+    }
+}
+
+void lcd_print_string(char *string, disp_pos_t pos, font_descriptor_t *font, uint16_t color)
+{
+  char c;
+  int i = 0;
+  while ((c = string[i]) != '\0')
+    {
+      assert((c >= font->firstchar) && (c - font->firstchar < font->size));
+      unsigned char char_width = font->width ? font->width[c - font->firstchar] : font->maxwidth;
+      lcd_print_char(c, pos, font, color);
+      pos.x += char_width;
+      i++;
     }
 }
 
@@ -198,7 +266,7 @@ void lcd_print_from_file(FILE *file)
           pos.y = i;
           lcd_write_pixel(pos, color);
         }
-     // lcd_print_frame_buffer();
+      //lcd_print_frame_buffer();
     }
   lcd_print_frame_buffer();
 }

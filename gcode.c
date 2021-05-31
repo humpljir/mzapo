@@ -13,7 +13,7 @@ model_t model = {.x_coord_min = 0, .y_coord_min = 0, .z_coord_min = 0};
 setting_t setting = {true, true, true};
 file_t file = {NULL};
 
-void init_cmd(command *cmd)
+void gcode_init_cmd(command *cmd)
 {
   *cmd = (command) {0};
   return;
@@ -39,10 +39,10 @@ void init_cmd(command *cmd)
   */
 }
 
-bool parse_line(command *cmd, char *line, int size)
+bool gcode_parse_line(command *cmd, char *line, int size)
 {
   int index = 0;
-  init_cmd(cmd);
+  gcode_init_cmd(cmd);
   char *cmd_buf = (char *) malloc(sizeof(char) * size);
   if (cmd_buf == NULL) return false;
   while (line[index] != '\0' && line[index] != '\n' && line[index] != '\r' &&
@@ -79,7 +79,7 @@ bool parse_line(command *cmd, char *line, int size)
               field_p = &cmd->T;
               break;
           default:
-              fprintf(stderr, "Error: parse_line(): Unknown field identifier\n");
+              fprintf(stderr, "Error: gcode_parse_line(): Unknown field identifier\n");
               fprintf(stderr, "field identifier: %c, neboli %d\n", line[index], line[index]);
               free(cmd_buf);
               return false;
@@ -99,14 +99,14 @@ bool parse_line(command *cmd, char *line, int size)
         }
       while(line[index] == ' ') index++; // skip whitespace
     }
-  //fprintf(stderr, "info: parse_line(): parsed \n");
-  //fprintf(stderr, "Error: parse_line(): Unknown command number\n");
+  //fprintf(stderr, "info: gcode_parse_line(): parsed \n");
+  //fprintf(stderr, "Error: gcode_parse_line(): Unknown command number\n");
   free(cmd_buf);
   if (index == 0) return false;
   return true;
 }
 
-void process_cmd(command *cmd)  // get args and simulate machine
+void gcode_process_cmd(command *cmd)  // get args and simulate machine
 {
   if (cmd->G.flag)
     {
@@ -114,7 +114,7 @@ void process_cmd(command *cmd)  // get args and simulate machine
         {
           case G0:  // move
           case G1:  // common for G0 and G1 //TODO: extruder movement
-              move(cmd);
+              gcode_move(cmd);
               break;
           case G20:
               setting.mm = false;  // -> must be inches
@@ -159,7 +159,7 @@ void process_cmd(command *cmd)  // get args and simulate machine
     }
 }
 
-void move(command *cmd)  // expecting command to be G0 or G1 TODO: vymyslet separaci vrstev
+void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymyslet separaci vrstev
 {
   if (! (cmd->X.flag || cmd->Y.flag || cmd->Z.flag)) return;  // don't care about other than xyz movements
   float conversion_ratio = setting.mm ? 1 : 2.54;
@@ -223,7 +223,7 @@ void move(command *cmd)  // expecting command to be G0 or G1 TODO: vymyslet sepa
     }
 }
 
-void print_cmd(command *cmd)
+void gcode_print_cmd(command *cmd)
 {
   fprintf(stderr,
           "printing command: G%g M%g X%g Y%g Z%g F%g E%g S%g T%g\n",
@@ -251,7 +251,7 @@ void print_cmd(command *cmd)
           */
 }
 
-void print_stats(void)
+void gcode_print_stats(void)
 {
   if (file.size/1000 < 1000) fprintf(stderr, "Filename: %s Size: %lu kB\n", file.name, file.size);
   else fprintf(stderr, "Filename: %s Size: %g MB\n", file.name, (double) file.size / 1000000);
@@ -262,7 +262,7 @@ void print_stats(void)
   fprintf(stderr, "Layer thickness: %f\n", model.z_coord_max / model.layer_count);
 }
 
-void set_default_vals(void) // TODO: vymyslet separaci vrstev
+void gcode_set_default_vals(void) // TODO: vymyslet separaci vrstev
 {
   machine = (machine_t){0};
   model = (model_t){.layer_count = 0, .layers[0].file_seek = 0, .x_coord_min = 1000, .y_coord_min = 1000, .z_coord_min = 1000};
@@ -270,9 +270,9 @@ void set_default_vals(void) // TODO: vymyslet separaci vrstev
   file = (file_t){NULL};
 }
 
-bool init_file(char *filename)  //returns true on success, false on fialure
+bool gcode_init_file(char *filename)  //returns true on success, false on fialure
 {
-  set_default_vals();
+  gcode_set_default_vals();
   file.name = filename;
   file.fd = fopen(file.name, "r");
   if (file.fd == NULL)
@@ -283,14 +283,14 @@ bool init_file(char *filename)  //returns true on success, false on fialure
   char *line = NULL;
   size_t size = 0;
   command cmd; // = {.Z.flag = true, .Z.decimal = 0};  // so the first layer is initialized
-  //move(&cmd);
+  //gcode_move(&cmd);
   while (getline(&line, &size, file.fd) != -1)
     {
       //fprintf(stderr, "%s", line);
-      if (parse_line(&cmd, line, size))
+      if (gcode_parse_line(&cmd, line, size))
         {
           //print_cmd(&cmd);
-          process_cmd(&cmd);
+          gcode_process_cmd(&cmd);
         }
       free(line);
       line = NULL;
@@ -299,29 +299,29 @@ bool init_file(char *filename)  //returns true on success, false on fialure
   free(line);  // getline failed but line has to be freed
   file.size = ftell(file.fd);  // in bytes
   fseek(file.fd, 0, SEEK_SET);
-  set_layer(&model.layers[5]);
-  print_layer(&model.layers[5]);
+  gcode_set_layer(&model.layers[2]);
+  gcode_print_layer(&model.layers[2]);
   for (int i = 0; i < 10; i++)
     {
       fprintf(stderr, "layer: %d, move_count: %d, file seek: %ld\n", i, model.layers[i].length, model.layers[i].file_seek);
     }
-  free_layer(&model.layers[5]);
-  print_stats();
+  gcode_free_layer(&model.layers[2]);
+  gcode_print_stats();
   return true;
 }
 
-void close_file(void)
+void gcode_close_file(void)
 {
   fclose(file.fd);
 }
 
-bool set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points
+bool gcode_set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points
 {
   fseek(file.fd, layer->file_seek, SEEK_SET);
   layer->points = (pos_t *) malloc(sizeof(pos_t) * layer->length);
   if (layer->points == NULL)
     {
-      fprintf(stderr, "Error: set_layer: failed to malloc\n");
+      fprintf(stderr, "Error: gcode_set_layer: failed to malloc\n");
       return false;
     }
   int move_count = 0;
@@ -331,7 +331,7 @@ bool set_layer(layer_t *layer)  // take layer->file_seek and layer->length and a
   command cmd;
   while (move_count < layer->length)
     {
-      get_cmd(&cmd, true);  //get next move command
+      gcode_get_cmd(&cmd, true);  //get next move command
       layer->points[move_count].x = cmd.X.decimal;
       layer->points[move_count].y = cmd.Y.decimal;
       move_count++;
@@ -339,22 +339,22 @@ bool set_layer(layer_t *layer)  // take layer->file_seek and layer->length and a
   return true;
 }
 
-bool set_layer_by_num(int layer_num)  // take layer->file_seek and layer->length and allocate and write points
+bool gcode_set_layer_by_num(int layer_num)  // take layer->file_seek and layer->length and allocate and write points
 {
-  return set_layer(&model.layers[layer_num]);
+  return gcode_set_layer(&model.layers[layer_num]);
 }
 
-layer_t *get_layer(int layer_num)
+layer_t *gcode_get_layer(int layer_num)
 {
   return &model.layers[layer_num];
 }
 
-void free_layer(layer_t *layer)
+void gcode_free_layer(layer_t *layer)
 {
   if (layer->points != NULL) free(layer->points);
 }
 
-void print_layer(layer_t *layer)
+void gcode_print_layer(layer_t *layer)
 {
   fprintf(stderr, "layer length: %d\n", layer->length);
   for (int i = 0; i < layer->length; i++)
@@ -363,13 +363,13 @@ void print_layer(layer_t *layer)
     }
 }
 
-bool get_cmd(command *cmd, bool move_only)  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
+bool gcode_get_cmd(command *cmd, bool move_only)  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
 {
   char *line = NULL;
   size_t size = 0;
   while (getline(&line, &size, file.fd) != -1)
     {
-      if (parse_line(cmd, line, size))
+      if (gcode_parse_line(cmd, line, size))
         {
           if (! move_only)
             {
@@ -387,4 +387,14 @@ bool get_cmd(command *cmd, bool move_only)  // reads next command from file.fd i
     }
   free(line);
   return false;
+}
+
+model_t *gcode_get_model(void)
+{
+  return &model;
+}
+
+file_t *gcode_get_file_info(void)
+{
+  return &file;
 }
