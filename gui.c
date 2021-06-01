@@ -9,6 +9,7 @@
 #include "gcode.h"
 #include "lcd.h"
 #include "font_types.h"
+#include "hwio.h"
 
 #define DISP_RATIO 1.5  // SCREEN_WIDTH/SCREEN_HEIGHT (480/320)
 #define GR_INTRO "./graphics/intro.bin"
@@ -101,7 +102,13 @@ void gui_layer_up(void)
       fprintf(stderr, "gui_layer_up(): already top layer can't go higher\n");
       return;
     }
+  if (gui_state.active_layer == 0) hw_write_led1(0, 0, 0);
   gui_state.active_layer++;
+  int led_shift = round(32 * (gui_state.active_layer / (double) gui_state.layer_count));
+  led_shift = 32 - led_shift;  // flip
+  fprintf(stderr,"debug: %d\n", led_shift);
+  hw_write_ledstrip(0xFFFFFFFF << led_shift);
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(255, 255, 255);
   gui_apply_state();
 
 }
@@ -114,7 +121,12 @@ void gui_layer_down(void)
       fprintf(stderr, "gui_layer_down(): already bottom layer can't go lower\n");
       return;
     }
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(0, 0, 0);
   gui_state.active_layer--;
+  int led_shift = round(32 * (double)(gui_state.active_layer / gui_state.layer_count));
+  led_shift = 32 - led_shift;  // flip
+  hw_write_ledstrip(0xFFFFFFFF << led_shift);
+  if (gui_state.active_layer == 0) hw_write_led1(255, 255, 255);
   gui_apply_state();
 
 }

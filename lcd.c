@@ -134,7 +134,15 @@ void lcd_write_pixel(disp_pos_t pixel, uint16_t color)
 {
   // write pixel of color color to frame_buffer
   assert(display.initialized);
-  display.frame_buffer[pixel.y][pixel.x] = color;  //frame buffer is addressed (row, column)
+  if (0 <= pixel.x && pixel.x < SCREEN_WIDTH &&
+          0 <= pixel.y && pixel.y < SCREEN_HEIGHT)
+    {
+      display.frame_buffer[pixel.y][pixel.x] = color;  //frame buffer is addressed (row, column)
+    }
+  else
+    {
+      fprintf(stderr, "lcd_write_pixel(): warning: trying to write pixel out of display\n");
+    }
 }
 
 void lcd_paint_buffer(uint16_t color)

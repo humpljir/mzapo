@@ -10,6 +10,7 @@
 #include "gui.h"
 #include "gcode.h"
 #include "lcd.h"
+#include "hwio.h"
 
 #define PENIS "./penis2.bin"
 
@@ -34,11 +35,12 @@ enum  // keyboard input mapping
 
 int main(int argc, char **argv)
 {
-  
+///*  
   if (argc < 2) return ARGS_ERR;
   char *filename = argv[1];
   if (! gui_start()) return GUI_START_ERR;
   if (! gui_init_file(filename)) return INIT_ERR;   // still tests, probably will be called by gui.c
+  hw_init();
 //  gui_print_layer();  // print active layer
   char c;
   while ((c = getchar()) != 'q')
@@ -58,6 +60,7 @@ int main(int argc, char **argv)
               gui_r_decr();
               break;
           case KB_G_CLICK:
+              hw_check();
               fprintf(stderr, "main(): signal g_click received from keyboard\n");
               gui_g_click();
               break;
@@ -90,8 +93,11 @@ int main(int argc, char **argv)
     }
 
   gui_destroy();
-  
-  
+ //*/ 
+  /*
+  hw_init();
+  hw_test_out();
+  */
   /*
   if (! lcd_init()) return INIT_ERR;
   lcd_print_from_file(PENIS);

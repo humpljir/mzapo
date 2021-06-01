@@ -7,7 +7,7 @@ CXXFLAGS = -g -std=gnu++11 -O1 -Wall
 LDFLAGS = -lrt -lpthread
 LDLIBS = -lm
 
-SOURCES = main.c mzapo_parlcd.c mzapo_phys.c gcode.c gui.c lcd.c font_prop14x16.c font_rom8x16.c wArial_44.c
+SOURCES = main.c mzapo_parlcd.c mzapo_phys.c gcode.c gui.c lcd.c hwio.c font_prop14x16.c font_rom8x16.c wArial_44.c
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
