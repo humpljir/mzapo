@@ -12,7 +12,7 @@ bool gui_init_file(char *filename);  // init gui for particular file
 
 void gui_win_right(void);  // switch to window on right side from the active window (does nothing when in the rightmost one)
 
-void gui_redraw(void);  // redraws display according to disp_state
+void gui_apply_state(void);  // redraws display according to disp_state
 
 disp_pos_t gui_map_extruder_to_disp(pos_t pos);  // maps point from printing dimensions into display
 
@@ -21,5 +21,21 @@ bool gui_destroy(void);
 void gui_print_layer(void);  // print active layer
 
 disp_pos_t gui_map_extruder_to_disp(pos_t pos);  // maps point from printing dimensions into display
+
+// functions to proccess 
+void gui_r_click(void);
+void gui_r_incr(void);
+void gui_r_decr(void);
+void gui_g_click(void);
+void gui_g_incr(void);
+void gui_g_decr(void);
+void gui_b_click(void);
+void gui_b_incr(void);
+void gui_b_decr(void);
+
+//windows printing
+void print_win1(void);
+void print_win2(void);
+void print_win3(void);
 
 #endif

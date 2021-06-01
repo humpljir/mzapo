@@ -92,7 +92,9 @@ void lcd_test(uint16_t color)  // TODO: smazat urazky a nevhodne vyjevy
   end.x = SCREEN_WIDTH / 2- 1; end.y = SCREEN_HEIGHT * 3 / 4 - 1;
   lcd_draw_line(start, end, COLOR_BLUE);
   lcd_print_frame_buffer();
+  fprintf(stderr, "Falling asleep\n");
   sleep (1);  // sleep for 1 sec
+  fprintf(stderr, "Waking up\n");
   //test printing characters
   lcd_paint_buffer(COLOR_BLACK);
   disp_pos_t char_point = {10, 10};
@@ -100,7 +102,9 @@ void lcd_test(uint16_t color)  // TODO: smazat urazky a nevhodne vyjevy
   char_point = (disp_pos_t) {20, 10};
   lcd_print_char('G', char_point, &font_winFreeSystem14x16, COLOR_PINK);
   lcd_print_frame_buffer();
+  fprintf(stderr, "Falling asleep\n");
   sleep(1);
+  fprintf(stderr, "Waking up\n");
   //test printing strings
   lcd_paint_buffer(COLOR_BLACK);
   disp_pos_t string_point = {10, 10};
@@ -207,6 +211,11 @@ void lcd_print_char(char c, disp_pos_t pos, font_descriptor_t *font, uint16_t co
       font_bits_t val = *ptr;
       for (int j = 0; j < char_width; j++)
         {
+          if ((j % 16) == 0 && j != 0)
+            {
+              ptr++;
+              val = *ptr;
+            }
           if ((val & 0x8000) != 0)  // mask all, but the leftmost bit
             {
               lcd_write_pixel(pos, color);
