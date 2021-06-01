@@ -7,12 +7,13 @@
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT 320
 
-#define COLOR_WHITE 0xFFFF
-#define COLOR_BLACK 0x0000
-#define COLOR_RED   0xF800
-#define COLOR_GREEN 0x07E0
-#define COLOR_BLUE  0x111F
-#define COLOR_PINK  0xF816
+#define COLOR_WHITE  0xFFFF
+#define COLOR_BLACK  0x0000
+#define COLOR_RED    0xF800
+#define COLOR_GREEN  0x07E0
+#define COLOR_BLUE   0x111F
+#define COLOR_PINK   0xF816
+#define COLOR_ORANGE 0xF9A0
 
 typedef struct
 {

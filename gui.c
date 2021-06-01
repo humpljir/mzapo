@@ -56,13 +56,13 @@ struct
   int active_layer;  //index to gcode.c - model.layers[]
   char *filename;
   int filesize;
-  char s_filesize[STRING_MAXWIDTH];  // string representation
   double x_size;
   double y_size;
   double z_size;
   double model_ratio;  // model size ratio x_size/y_size
   double scalar;  // stores information for mapping machine choords to disp_choords
   //layer_t *layer;  // active layer
+  bool quit;  // quit?
 } gui_state = {WIN1};
 
 struct  // procedures are dependent on active_win
@@ -104,10 +104,7 @@ void gui_layer_up(void)
     }
   if (gui_state.active_layer == 0) hw_write_led1(0, 0, 0);
   gui_state.active_layer++;
-  int led_shift = round(32 * (gui_state.active_layer / (double) gui_state.layer_count));
-  led_shift = 32 - led_shift;  // flip
-  fprintf(stderr,"debug: %d\n", led_shift);
-  hw_write_ledstrip(0xFFFFFFFF << led_shift);
+  gui_refresh_ledstrip();
   if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(255, 255, 255);
   gui_apply_state();
 
@@ -123,12 +120,17 @@ void gui_layer_down(void)
     }
   if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(0, 0, 0);
   gui_state.active_layer--;
-  int led_shift = round(32 * (double)(gui_state.active_layer / gui_state.layer_count));
-  led_shift = 32 - led_shift;  // flip
-  hw_write_ledstrip(0xFFFFFFFF << led_shift);
+  gui_refresh_ledstrip();
   if (gui_state.active_layer == 0) hw_write_led1(255, 255, 255);
   gui_apply_state();
 
+}
+
+void gui_refresh_ledstrip(void)
+{
+  int led_shift = round(32 * (gui_state.active_layer / ((double) gui_state.layer_count - 1)));
+  led_shift = 32 - led_shift;  // flip
+  hw_write_ledstrip(0xFFFFFFFF << led_shift);
 }
 
 void gui_apply_state(void)  // redraws display according to gui_state
@@ -136,6 +138,7 @@ void gui_apply_state(void)  // redraws display according to gui_state
   switch (gui_state.active_win)
     {
       case WIN1:
+          gui_input_procedures.g_click = gui_set_quit;  // quit when green button pressed
           fprintf(stderr, "gui_apply_state(): WIN1 not yet done\n");
           print_win1();
           break;
@@ -172,6 +175,10 @@ void gui_apply_state(void)  // redraws display according to gui_state
 bool gui_start(void)
 {
   if (! lcd_init()) return false;
+  if (! hw_init()) return false;
+  hw_write_ledstrip(0x00000000);
+  hw_write_led1(0, 0, 0);
+  hw_write_led2(0, 0, 0);
   lcd_print_from_file(GR_INTRO);
   usleep(INTRO_TIME);
   gui_input_procedures.r_click = gui_win_left;  // always
@@ -189,7 +196,6 @@ bool gui_init_file(char *filename)  // init gui for particular file
 
   gui_state.filename = file_info->name;
   gui_state.filesize = file_info->size;
-  sprintf(gui_state.s_filesize, "%d kB", gui_state.filesize / 1000);
 
   gui_state.layer_count = model->layer_count;
   gui_state.x_size = model->x_coord_max;
@@ -222,6 +228,9 @@ bool gui_init_file(char *filename)  // init gui for particular file
 
 bool gui_destroy(void)
 {
+  hw_write_ledstrip(0x00000000);
+  hw_write_led1(0, 0, 0);
+  hw_write_led2(0, 0, 0);
   lcd_print_from_file(GR_INTRO);
   usleep(OUTRO_TIME);
   lcd_paint_buffer(COLOR_BLACK);
@@ -254,7 +263,7 @@ void gui_print_layer(void)  // print active layer
       //lcd_print_frame_buffer();  // send it to buffer
     }
   gcode_free_layer(layer);
-  lcd_print_frame_buffer();  // send it to buffer
+  lcd_print_frame_buffer();  // send it to display
 }
 
 disp_pos_t gui_map_extruder_to_disp(pos_t pos)  // maps point from printing dimensions into display
@@ -268,6 +277,11 @@ disp_pos_t gui_map_extruder_to_disp(pos_t pos)  // maps point from printing dime
           scalar, pos.x, disp_pos.x, pos.y, disp_pos.y);
   */
   return disp_pos;
+}
+
+bool gui_quit(void)
+{
+  return gui_state.quit;
 }
 
 //input procedures
@@ -309,6 +323,11 @@ void gui_b_decr(void)
   if (gui_input_procedures.b_decr) gui_input_procedures.b_decr();
 }
 
+void gui_set_quit(void)
+{
+  gui_state.quit = true;
+}
+
 void print_win1(void)
 {
   lcd_print_from_file(GR_BG_LABEL);
@@ -319,18 +338,18 @@ void print_win1(void)
 void print_win2(void)
 {
   lcd_print_from_file(GR_BG_LABEL);
-  char string[STRING_MAXWIDTH] = "FILENAME: ";
-  strcat(string, gui_state.filename);
+  char string[STRING_MAXWIDTH];
   disp_pos_t pos = {35, 95};  // aligned with label
+
+  sprintf(string, "FILENAME: %s", gui_state.filename);
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
   pos.y += font_winFreeSystem14x16.height;
 
-  strcpy(string, "FILESIZE: ");
-  strcat(string, gui_state.s_filesize);
+  sprintf(string, "FILESIZE: %d kB", gui_state.filesize / 1000);
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
   pos.y += font_winFreeSystem14x16.height;
 
-  strcpy(string, "MODEL:");
+  sprintf(string, "MODEL:");
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
   pos.y += font_winFreeSystem14x16.height;
 
@@ -346,6 +365,10 @@ void print_win2(void)
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
   pos.y += font_winFreeSystem14x16.height;
 
+  sprintf(string, "   NUMBER OF LAYERS: %d", gui_state.layer_count);
+  lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
+  pos.y += font_winFreeSystem14x16.height;
+//TODO: delete s_filesize
   lcd_print_frame_buffer();
 }
 void print_win3(void)
