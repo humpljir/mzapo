@@ -54,10 +54,20 @@ typedef struct
   double decimal;
 } field;
 
-typedef struct
+typedef struct // TODO: nejspis zrusit disp_x, dixp_y
 {
-  double x;  // x coord
-  double y;  // y coord
+  double x;  // x coord of the extruder
+  double y;  // y coord of the extruder
+//  int disp_x;  // x coord into frame buffer
+//  int disp_y;  // y coord into frame buffer
+/*
+       + > x
+(0, 0) v +-----                -----
+DISP   y |     |     EXTRUDER |     |
+         |     |            y |     |
+          -----       (0, 0)^ +-----
+                            + > x
+*/
 } pos_t;
 
 typedef struct
@@ -121,19 +131,22 @@ typedef struct  // file
   long size; // in bytes
 } file_t;
 
-bool parse_line (command *cmd, char *line, int size);
-void process_cmd(command *cmd);  // get args and simulate machine
-void print_cmd(command *cmd);
-void move(command *cmd);  // expecting command to be G0 or G1
-void print_stats(void);
-bool init_file(char *filename);  //returns true on success, false on failure
-void close_file(void);
-void set_defualt_vals(void);
-bool set_layer(layer_t *layer);  // take layer->file_seek and layer->length and allocate and write points
-bool set_layer_by_num(int layer_num);  // takes index to model.layers[]
-layer_t *get_layer(int layer_num);
-void free_layer(layer_t *layer);
-void print_layer(layer_t *layer);
-bool get_cmd(command *cmd, bool move_only);  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
+void gcode_init_cmd(command *cmd);
+bool gcode_parse_line (command *cmd, char *line, int size);
+void gcode_process_cmd(command *cmd);  // get args and simulate machine
+void gcode_print_cmd(command *cmd);
+void gcode_move(command *cmd);  // expecting command to be G0 or G1
+void gcode_print_stats(void);
+bool gcode_init_file(char *filename);  //returns true on success, false on failure
+void gcode_close_file(void);
+void gcode_set_defualt_vals(void);
+bool gcode_set_layer(layer_t *layer);  // take layer->file_seek and layer->length and allocate and write points
+bool gcode_set_layer_by_num(int layer_num);  // takes index to model.layers[]
+layer_t *gcode_get_layer(int layer_num);
+void gcode_free_layer(layer_t *layer);
+void gcode_print_layer(layer_t *layer);
+bool gcode_get_cmd(command *cmd, bool move_only);  // reads next command from file.fd into cmd, if move_only, writes next G1 or G0, true on success, false othrwise
+model_t *gcode_get_model(void);
+file_t *gcode_get_file_info(void);
 
 #endif

@@ -45,8 +45,6 @@ extern font_descriptor_t font_winFreeSystem14x16;
 
 extern font_descriptor_t font_rom8x16;
 
-extern font_descriptor_t font_wArial_44;
-
 #ifdef __cplusplus
 } /* extern "C"*/
 #endif
