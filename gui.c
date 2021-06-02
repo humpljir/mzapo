@@ -16,7 +16,7 @@
 #define GR_BG_LABEL "./graphics/bg_label.bin"
 #define GR_BG_BLANK "./graphics/bg_blank.bin"
 
-#define INTRO_TIME 6 * 1000 * 1000  // us
+#define INTRO_TIME 4 * 1000 * 1000  // us
 #define OUTRO_TIME 1 * 1000 * 1000  // us
 
 #define INNER_FRAME 1//0.9  // scale model image on screen
@@ -107,7 +107,6 @@ void gui_layer_up(void)
   gui_refresh_ledstrip();
   if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(255, 255, 255);
   gui_apply_state();
-
 }
 
 void gui_layer_down(void)
@@ -123,7 +122,76 @@ void gui_layer_down(void)
   gui_refresh_ledstrip();
   if (gui_state.active_layer == 0) hw_write_led1(255, 255, 255);
   gui_apply_state();
+}
 
+void gui_layer_up_4x(void)
+{
+  assert(gui_state.active_win == WIN3);
+  if (gui_state.active_layer >= gui_state.layer_count - 1)
+    {
+      fprintf(stderr, "gui_layer_up(): already top layer can't go higher\n");
+      return;
+    }
+  if (gui_state.active_layer == 0) hw_write_led1(0, 0, 0);
+  gui_state.active_layer += 4;
+  if (gui_state.active_layer >= gui_state.layer_count - 1)
+    {
+      gui_state.active_layer = gui_state.layer_count - 1;
+    }
+  gui_refresh_ledstrip();
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(255, 255, 255);
+  gui_apply_state();
+}
+
+void gui_layer_down_4x(void)
+{
+  assert(gui_state.active_win == WIN3);
+  if (gui_state.active_layer <= 0)
+    {
+      fprintf(stderr, "gui_layer_down(): already bottom layer can't go lower\n");
+      return;
+    }
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(0, 0, 0);
+  gui_state.active_layer -= 4;
+  if (gui_state.active_layer < 0) gui_state.active_layer = 0;
+  gui_refresh_ledstrip();
+  if (gui_state.active_layer == 0) hw_write_led1(255, 255, 255);
+  gui_apply_state();
+}
+
+void gui_layer_up_16x(void)
+{
+  assert(gui_state.active_win == WIN3);
+  if (gui_state.active_layer >= gui_state.layer_count - 1)
+    {
+      fprintf(stderr, "gui_layer_up(): already top layer can't go higher\n");
+      return;
+    }
+  if (gui_state.active_layer == 0) hw_write_led1(0, 0, 0);
+  gui_state.active_layer += 16;
+  if (gui_state.active_layer >= gui_state.layer_count - 1)
+    {
+      gui_state.active_layer = gui_state.layer_count - 1;
+    }
+  gui_refresh_ledstrip();
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(255, 255, 255);
+  gui_apply_state();
+}
+
+void gui_layer_down_16x(void)
+{
+  assert(gui_state.active_win == WIN3);
+  if (gui_state.active_layer <= 0)
+    {
+      fprintf(stderr, "gui_layer_down(): already bottom layer can't go lower\n");
+      return;
+    }
+  if (gui_state.active_layer == gui_state.layer_count - 1) hw_write_led2(0, 0, 0);
+  gui_state.active_layer -= 16;
+  if (gui_state.active_layer < 0) gui_state.active_layer = 0;
+  gui_refresh_ledstrip();
+  if (gui_state.active_layer == 0) hw_write_led1(255, 255, 255);
+  gui_apply_state();
 }
 
 void gui_refresh_ledstrip(void)
@@ -135,6 +203,8 @@ void gui_refresh_ledstrip(void)
 
 void gui_apply_state(void)  // redraws display according to gui_state
 {
+  //set functions of individual input elements (knob-click, knob-increment, knob-decrement)
+  //then redraw screen for particular WIN
   switch (gui_state.active_win)
     {
       case WIN1:
@@ -157,12 +227,12 @@ void gui_apply_state(void)  // redraws display according to gui_state
       case WIN3:
           gui_input_procedures.g_click = NULL;
 
-          gui_input_procedures.r_incr = NULL;
-          gui_input_procedures.g_incr = NULL;
+          gui_input_procedures.r_incr = gui_layer_up_16x;
+          gui_input_procedures.g_incr = gui_layer_up_4x;
           gui_input_procedures.b_incr = gui_layer_up;
 
-          gui_input_procedures.r_decr = NULL;
-          gui_input_procedures.g_decr = NULL;
+          gui_input_procedures.r_decr = gui_layer_down_16x;
+          gui_input_procedures.g_decr = gui_layer_down_4x;
           gui_input_procedures.b_decr = gui_layer_down;
           print_win3();
           break;
@@ -190,7 +260,17 @@ bool gui_start(void)
 
 bool gui_init_file(char *filename)  // init gui for particular file
 {
-  if (! gcode_init_file(filename)) return false;
+  lcd_print_from_file(GR_BG_LABEL);
+  disp_pos_t pos = {100, 100};
+  lcd_print_string("LOADING FILE...", pos, &font_wArial_44, COLOR_WHITE);
+  lcd_print_frame_buffer();
+  if (! gcode_init_file(filename))
+    { 
+      pos.y += font_wArial_44.height;
+      lcd_print_string("FAILED", pos, &font_wArial_44, COLOR_WHITE);
+      lcd_print_frame_buffer();
+      return false;
+    }
   model_t *model = gcode_get_model();
   file_t *file_info = gcode_get_file_info();
 
@@ -244,11 +324,22 @@ bool gui_destroy(void)
 void gui_print_layer(void)  // print active layer
 {
   layer_t *layer = gcode_get_layer(gui_state.active_layer);
+
+  //print active layer num
+  disp_pos_t text_pos = {400, 10};
+  char text_string[STRING_MAXWIDTH];
+  sprintf(text_string, "%d/%d", gui_state.active_layer, gui_state.layer_count - 1);
+  lcd_print_string(text_string, text_pos, &font_winFreeSystem14x16, COLOR_WHITE);
+
   if (layer->length < 2)
     {
       fprintf(stderr,
               "gui_print_layer: layer %d length is %d, nothing to print\n",
               gui_state.active_layer, layer->length);
+      text_pos = (disp_pos_t) {10, 10};
+      sprintf(text_string, "no print data for this layer");
+      lcd_print_string(text_string, text_pos, &font_winFreeSystem14x16, COLOR_WHITE);
+      lcd_print_frame_buffer();  // send it to display
       return;
     }
   gcode_set_layer_by_num(gui_state.active_layer);
@@ -331,8 +422,8 @@ void gui_set_quit(void)
 void print_win1(void)
 {
   lcd_print_from_file(GR_BG_LABEL);
-  disp_pos_t pos = {100, 100};
-  lcd_print_string("NOT DONE, YET", pos, &font_wArial_44, COLOR_WHITE);
+  disp_pos_t pos = {60, 100};
+  lcd_print_string("WIN1 NOT DONE, YET", pos, &font_wArial_44, COLOR_WHITE);
   lcd_print_frame_buffer();
 }
 void print_win2(void)

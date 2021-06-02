@@ -5,7 +5,7 @@
 #include "gcode.h"
 
 #define MIN_FRAME -5 //mm  // when negative not used
-#define MAX_LAYERS 2000 //  supposing model will not hold more layers
+//(already define in gcode.h) #define MAX_LAYERS 4000 //  supposing model will not hold more layers
 
 
 machine_t machine = {0};
@@ -77,6 +77,24 @@ bool gcode_parse_line(command *cmd, char *line, int size)
               break;
           case 'T':
               field_p = &cmd->T;
+              break;
+          case 'P':
+              field_p = &cmd->P;
+              break;
+          case 'Q':
+              field_p = &cmd->Q;
+              break;
+          case 'R':
+              field_p = &cmd->R;
+              break;
+          case 'U':
+              field_p = &cmd->U;
+              break;
+          case 'W':
+              field_p = &cmd->W;
+              break;
+          case 'K':
+              field_p = &cmd->K;
               break;
           default:
               fprintf(stderr, "Error: gcode_parse_line(): Unknown field identifier\n");
@@ -226,7 +244,7 @@ void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymysle
 void gcode_print_cmd(command *cmd)
 {
   fprintf(stderr,
-          "printing command: G%g M%g X%g Y%g Z%g F%g E%g S%g T%g\n",
+          "printing command: G%g M%g X%g Y%g Z%g F%g E%g S%g T%g P%g Q%g R%g U%g W%g K%g\n",
           cmd->G.flag ? cmd->G.decimal : -1,
           cmd->M.flag ? cmd->M.decimal : -1,
           cmd->X.flag ? cmd->X.decimal : -1,
@@ -235,7 +253,13 @@ void gcode_print_cmd(command *cmd)
           cmd->F.flag ? cmd->F.decimal : -1,
           cmd->E.flag ? cmd->E.decimal : -1,
           cmd->S.flag ? cmd->S.decimal : -1,
-          cmd->T.flag ? cmd->T.decimal : -1);
+          cmd->T.flag ? cmd->T.decimal : -1,
+          cmd->P.flag ? cmd->S.decimal : -1,
+          cmd->Q.flag ? cmd->S.decimal : -1,
+          cmd->R.flag ? cmd->S.decimal : -1,
+          cmd->U.flag ? cmd->S.decimal : -1,
+          cmd->W.flag ? cmd->S.decimal : -1,
+          cmd->K.flag ? cmd->S.decimal : -1);
   /*
   fprintf(stderr,
           "command flags: G: %s M: %s X: %s Y: %s Z: %s F: %s E: %s S: %s T: %s\n",
@@ -319,6 +343,7 @@ void gcode_close_file(void)
 
 bool gcode_set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points
 {
+  //fprintf(stderr, "gcode_set_layer() start\n");
   fseek(file.fd, layer->file_seek, SEEK_SET);
   layer->points = (pos_t *) malloc(sizeof(pos_t) * layer->length);
   if (layer->points == NULL)
@@ -338,6 +363,7 @@ bool gcode_set_layer(layer_t *layer)  // take layer->file_seek and layer->length
       layer->points[move_count].y = cmd.Y.decimal;
       move_count++;
     }
+  //fprintf(stderr, "gcode_set_layer() end\n");
   return true;
 }
 

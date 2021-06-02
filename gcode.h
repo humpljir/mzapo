@@ -5,7 +5,7 @@
 #define GCODE_H
 
 #define MIN_FRAME -5 //mm  // when negative not used
-#define MAX_LAYERS 2000 //  supposing model will not hold more layers
+#define MAX_LAYERS 4000 //  supposing model will not hold more layers
 
 /*
 typedef enum
@@ -54,12 +54,10 @@ typedef struct
   double decimal;
 } field;
 
-typedef struct // TODO: nejspis zrusit disp_x, dixp_y
+typedef struct
 {
   double x;  // x coord of the extruder
   double y;  // y coord of the extruder
-//  int disp_x;  // x coord into frame buffer
-//  int disp_y;  // y coord into frame buffer
 /*
        + > x
 (0, 0) v +-----                -----
@@ -89,6 +87,12 @@ typedef struct
   field E;
   field S;
   field T;
+  field P;
+  field Q;
+  field R;
+  field U;
+  field W;
+  field K;
 } command;
 
 typedef struct  // machine

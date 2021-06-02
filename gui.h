@@ -15,6 +15,10 @@ void gui_win_left(void);  // switch to the window on the left side from the acti
 
 void gui_layer_up(void);
 void gui_layer_down(void);
+void gui_layer_up_4x(void);
+void gui_layer_down_4x(void);
+void gui_layer_up_16x(void);
+void gui_layer_down_16x(void);
 void gui_refresh_ledstrip(void);
 
 void gui_apply_state(void);  // redraws display according to disp_state
