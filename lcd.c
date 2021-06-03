@@ -112,7 +112,16 @@ void lcd_test(uint16_t color)  // TODO: smazat urazky a nevhodne vyjevy
   string_point = (disp_pos_t) {10, 30};
   lcd_print_string("Pisovi smrdi nohy", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
   lcd_print_frame_buffer();
-
+  // test getting char and string size:
+  fprintf(stderr, "Testing getting char and string size\n");
+  fprintf(stderr,
+          "width of a is: %d, width of aaa is: %d\n",
+          lcd_get_char_width('a', &font_winFreeSystem14x16),
+          lcd_get_string_width("aaa", &font_winFreeSystem14x16));
+  fprintf(stderr,
+          "width of i is: %d, width of iii is: %d\n",
+          lcd_get_char_width('i', &font_winFreeSystem14x16),
+          lcd_get_string_width("iii", &font_winFreeSystem14x16));
 }
 
 void lcd_paint(uint16_t color)
@@ -249,6 +258,25 @@ void lcd_print_string(char *string, disp_pos_t pos, font_descriptor_t *font, uin
       pos.x += char_width;
       i++;
     }
+}
+
+unsigned char lcd_get_char_width(char c, font_descriptor_t *font)
+{
+  assert((c >= font->firstchar) && (c - font->firstchar < font->size));
+  unsigned char char_width = font->width ? font->width[c - font->firstchar] : font->maxwidth;  // width of printed character
+ return char_width;
+}
+
+int lcd_get_string_width(char *string, font_descriptor_t *font)
+{
+  int width = 0;
+  int str_index = 0;
+  while (string[str_index] != '\0')
+    {
+      width += lcd_get_char_width(string[str_index], font);
+      str_index++;
+    }
+  return width;
 }
 
 void lcd_print_frame_buffer(void)  // send content of frame_buffer to display

@@ -5,6 +5,7 @@
 #include "gcode.h"
 
 #define MIN_FRAME -5 //mm  // when negative not used
+#define MAX_L_HEIGHT 0.35
 //(already define in gcode.h) #define MAX_LAYERS 4000 //  supposing model will not hold more layers
 
 
@@ -17,26 +18,6 @@ void gcode_init_cmd(command *cmd)
 {
   *cmd = (command) {0};
   return;
-  /*
-  cmd->G.flag = false;
-  cmd->G.decimal = 0;
-  cmd->M.flag = false;
-  cmd->M.decimal = 0;
-  cmd->X.flag = false;
-  cmd->X.decimal = 0;
-  cmd->Y.flag = false;
-  cmd->Y.decimal = 0;
-  cmd->Z.flag = false;
-  cmd->Z.decimal = 0;
-  cmd->F.flag = false;
-  cmd->F.decimal = 0;
-  cmd->E.flag = false;
-  cmd->E.decimal = 0;
-  cmd->S.flag = false;
-  cmd->S.decimal = 0;
-  cmd->T.flag = false;
-  cmd->T.decimal = 0;
-  */
 }
 
 bool gcode_parse_line(command *cmd, char *line, int size)
@@ -46,7 +27,7 @@ bool gcode_parse_line(command *cmd, char *line, int size)
   char *cmd_buf = (char *) malloc(sizeof(char) * size);
   if (cmd_buf == NULL) return false;
   while (line[index] != '\0' && line[index] != '\n' && line[index] != '\r' &&
-         line[index] != ';')
+         line[index] != ';' && line[index] != '"')
     {
       field *field_p = NULL;
       switch (line[index])
@@ -186,12 +167,15 @@ void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymysle
     {
       if (cmd->X.flag) machine.x_coord = cmd->X.decimal * conversion_ratio;
       if (cmd->Y.flag) machine.y_coord = cmd->Y.decimal * conversion_ratio;
-      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord)
+      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord && MAX_L_HEIGHT >= cmd->Z.decimal - machine.z_coord)
         {
           //fprintf(stderr, "layer %d done, starting new layer\n", model.layer_count);
           //fprintf(stderr, "layer_length of layer %d is: %d, starting new layer\n\n", model.layer_count, model.layers[model.layer_count].length);
+          //fprintf(stderr, "gcode_move(): new model.layers index: %d, layer height: %f\n", model.layer_count + 1, cmd->Z.decimal - machine.z_coord);
           machine.z_coord = cmd->Z.decimal * conversion_ratio;
+          //gcode_print_cmd(cmd);
           model.layers[++model.layer_count].file_seek = ftell(file.fd);
+          model.layers[model.layer_count].height = machine.z_coord;
           pos_t new_start_point;
           new_start_point.x = machine.x_coord;
           new_start_point.y = machine.y_coord;
@@ -200,6 +184,10 @@ void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymysle
         }
       else  // Z flag is not set
         {
+          if (MAX_L_HEIGHT < cmd->Z.decimal - machine.z_coord)
+            {
+              //fprintf(stderr, "WEIRD LAYER HEIGHT\n");
+            }
           //model.layers[model.layer_count].length++;  //increment movements in current layer
           //fprintf(stderr, "increasing layer_count at layer num: %d\n", model.layer_count);
         }
@@ -208,12 +196,17 @@ void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymysle
     {
       if (cmd->X.flag) machine.x_coord += cmd->X.decimal * conversion_ratio;
       if (cmd->Y.flag) machine.y_coord += cmd->Y.decimal * conversion_ratio;
-      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord)
+      if (cmd->Z.flag && cmd->Z.decimal != machine.z_coord && MAX_L_HEIGHT >= cmd->Z.decimal - machine.z_coord)
         {
           //fprintf(stderr, "layer %d done, starting new layer\n", model.layer_count);
           //fprintf(stderr, "layer_length of layer %d is: %d, starting new layer\n\n", model.layer_count, model.layers[model.layer_count].length);
+          //fprintf(stderr, "gcode_move(): new model.layers index: %d, layer height: %f\n", model.layer_count + 1, cmd->Z.decimal - machine.z_coord);
           machine.z_coord += cmd->Z.decimal * conversion_ratio;
+          //gcode_print_cmd(cmd);
+          //fprintf(stderr, "gcode_move(): new model.layers index: %d\n", model.layer_count + 1);
           model.layers[++model.layer_count].file_seek = ftell(file.fd);
+          model.layers[model.layer_count].height = machine.z_coord;
+          //fprintf(stderr, "gcode_move(): increased\n");
           pos_t new_start_point;
           new_start_point.x = machine.x_coord;
           new_start_point.y = machine.y_coord;
@@ -222,6 +215,10 @@ void gcode_move(command *cmd)  // expecting command to be G0 or G1 TODO: vymysle
         }
       else
         {
+          if (MAX_L_HEIGHT < cmd->Z.decimal - machine.z_coord)
+            {
+              //fprintf(stderr, "WEIRD LAYER HEIGHT\n");
+            }
           //model.layers[model.layer_count].length++;  //increment movements in current layer
           //fprintf(stderr, "increasing layer.length at layer num: %d\n", model.layer_count);
         }
@@ -333,12 +330,13 @@ bool gcode_init_file(char *filename)  //returns true on success, false on fialur
   gcode_free_layer(&model.layers[2]);
   */
   gcode_print_stats();  // print info about model and file
+
   return true;
 }
 
 void gcode_close_file(void)
 {
-  fclose(file.fd);
+  if (file.fd != NULL) fclose(file.fd);
 }
 
 bool gcode_set_layer(layer_t *layer)  // take layer->file_seek and layer->length and allocate and write points

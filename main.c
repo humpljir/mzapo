@@ -40,8 +40,12 @@ int main(int argc, char **argv)
 {
   if (argc < 2) return ARGS_ERR;
   char *filename = argv[1];
-  if (! gui_start()) return GUI_START_ERR;
-  if (! gui_init_file(filename)) return INIT_ERR;   // still tests, probably will be called by gui.c
+  if (! gui_start(filename))
+    {
+      fprintf(stderr, "NO FILE GIVEN");
+      return GUI_START_ERR;
+    }
+  //if (! gui_init_file(filename)) return INIT_ERR;   // still tests, probably will be called by gui.c
   bool quit = false;
   while (! quit)
     {

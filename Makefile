@@ -11,6 +11,7 @@ SOURCES = main.c mzapo_parlcd.c mzapo_phys.c gcode.c gui.c lcd.c hwio.c font_pro
 #SOURCES += font_prop14x16.c font_rom8x16.c
 TARGET_EXE = sem_exe
 TARGET_IP ?= 192.168.0.167#matiamic edited
+#TARGET_IP ?= 192.168.88.235#ema
 ifeq ($(TARGET_IP),)
 ifneq ($(filter debug run,$(MAKECMDGOALS)),)
 $(warning The target IP address is not set)

@@ -30,6 +30,8 @@ void lcd_paint_buffer(uint16_t color);
 void lcd_draw_line(disp_pos_t start_point, disp_pos_t end_point, uint16_t color);
 void lcd_print_char(char c, disp_pos_t pos, font_descriptor_t *font, uint16_t color);
 void lcd_print_string(char *string, disp_pos_t pos, font_descriptor_t *font, uint16_t color);
+unsigned char lcd_get_char_width(char c, font_descriptor_t *font);
+int lcd_get_string_width(char *string, font_descriptor_t *font);
 void lcd_print_frame_buffer(void);  // send content of frame_buffer to display
 bool lcd_print_from_file(char *filename);
 

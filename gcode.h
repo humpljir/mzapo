@@ -5,7 +5,7 @@
 #define GCODE_H
 
 #define MIN_FRAME -5 //mm  // when negative not used
-#define MAX_LAYERS 4000 //  supposing model will not hold more layers
+#define MAX_LAYERS 10000 //  supposing model will not hold more layers
 
 /*
 typedef enum
@@ -72,6 +72,7 @@ typedef struct
 {
   long file_seek;  // pointer into start of the layer
   int length;  // length of the layer in move instructions
+  double height;  // absolute haight above zero in mm
   pos_t start_point;  //first point of the layer, can be from leveling or the last point of previous layer 
   pos_t *points;  // pointer to an array of extruder's pathpoints
 } layer_t;
