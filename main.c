@@ -12,7 +12,6 @@
 #include "lcd.h"
 #include "hwio.h"
 
-#define PENIS "./penis2.bin"
 
 #define ARGS_ERR 100
 #define FILE_ERR 101
@@ -91,7 +90,8 @@ int main(int argc, char **argv)
       usleep(POLL_SLEEP);
     }
   gui_destroy();
-  /*
+
+  /*  KEYBOARD CONTROL:
   if (argc < 2) return ARGS_ERR;
   char *filename = argv[1];
   if (! hw_init()) return HW_INIT_ERR;
@@ -148,17 +148,6 @@ int main(int argc, char **argv)
     }
 
   gui_destroy();
-  */
-  /*
-  hw_init();
-  hw_test_out();
-  */
-  /*
-  if (! lcd_init()) return INIT_ERR;
-  lcd_print_from_file(PENIS);
-  //sleep(2);
-  //lcd_test(0x001F);
-  lcd_destroy();
   */
   return 0;
 }

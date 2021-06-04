@@ -108,9 +108,9 @@ void lcd_test(uint16_t color)  // TODO: smazat urazky a nevhodne vyjevy
   //test printing strings
   lcd_paint_buffer(COLOR_BLACK);
   disp_pos_t string_point = {10, 10};
-  lcd_print_string("Pisovi smrdi nohy", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
+  lcd_print_string("TEST STRING", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
   string_point = (disp_pos_t) {10, 30};
-  lcd_print_string("Pisovi smrdi nohy", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
+  lcd_print_string("TEST STRING 2", string_point, &font_winFreeSystem14x16, COLOR_WHITE);
   lcd_print_frame_buffer();
   // test getting char and string size:
   fprintf(stderr, "Testing getting char and string size\n");
