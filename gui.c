@@ -470,6 +470,18 @@ void print_win_man(void)
   char *string = "MANUAL";
   disp_pos_t pos = {35, 95};
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_PINK);
+  pos.y += font_rom8x16.height;
+  string = "Use blue knob for navigation in menu, press red or blue one";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+  pos.y += font_rom8x16.height;
+  string = "to change view mode. Turn blue one in layer view to move";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+  pos.y += font_rom8x16.height;
+  string = "one step between print layers, use red and green knobs";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+  pos.y += font_rom8x16.height;
+  string = "to move 4 or 16 steps.";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
   lcd_print_frame_buffer();
 }
 // end of window print functions===============================================
