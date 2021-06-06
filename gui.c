@@ -21,6 +21,10 @@
 
 #define INNER_FRAME 1//0.9  // scale model image on screen
 
+#define RED_KNOB_POS 120  // approximate x position of the red knob
+#define GREEN_KNOB_POS 290  // approximate x position of the green knob
+#define BLUE_KNOB_POS 420  // approximate x position of the blue knob
+
 #define STRING_MAXWIDTH 30
 
 /* DISPLAY SCHEME
@@ -415,10 +419,11 @@ void print_win1(void)  // menu
   lcd_print_string(color_line, elements_pos, &font_rom8x16, menu.state == MENU_QUIT ? COLOR_WHITE : COLOR_BLACK); 
   elements_pos.y += 1;
   lcd_print_string("QUIT", elements_pos, &font_rom8x16, menu.state == MENU_QUIT ? COLOR_BLACK : COLOR_WHITE); 
-  /*
-  disp_pos_t pos = {60, 100};
-  lcd_print_string("WIN1 NOT DONE, YET", pos, &font_wArial_44, COLOR_WHITE);
-  */
+
+  disp_pos_t pos;
+  pos.x = BLUE_KNOB_POS;
+  pos.y = SCREEN_HEIGHT - font_rom8x16.height;
+  lcd_print_string("SELECT", pos, &font_rom8x16, COLOR_BLUE);
   lcd_print_frame_buffer();
 }
 
@@ -455,6 +460,14 @@ void print_win2(void)
   sprintf(string, "   NUMBER OF LAYERS: %d", gui_state.layer_count);
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_WHITE);
   pos.y += font_winFreeSystem14x16.height;
+
+  pos.x = RED_KNOB_POS;
+  pos.y = SCREEN_HEIGHT - font_rom8x16.height;
+  lcd_print_string("MENU", pos, &font_rom8x16, COLOR_RED);
+
+  pos.x = BLUE_KNOB_POS;
+  pos.y = SCREEN_HEIGHT - font_rom8x16.height;
+  lcd_print_string("LAYERS", pos, &font_rom8x16, COLOR_BLUE);
   lcd_print_frame_buffer();
 }
 
@@ -466,22 +479,44 @@ void print_win3(void)
 
 void print_win_man(void)
 {
+  /*
+  string = "then press red or blue one to move around.";
+  string = "In layer mode, turn the blue knob to move";
+  string = "up or down by one layer.";
+  string = "use green or red knob";
+*/
   lcd_print_from_file(GR_BG_LABEL);
   char *string = "MANUAL";
   disp_pos_t pos = {35, 95};
   lcd_print_string(string, pos, &font_winFreeSystem14x16, COLOR_PINK);
+
   pos.y += font_rom8x16.height;
-  string = "Use blue knob for navigation in menu, press red or blue one";
+  string = "Use the blue knob to navigate in the menu,";
   lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
   pos.y += font_rom8x16.height;
-  string = "to change view mode. Turn blue one in layer view to move";
+  string = "then press red or blue one to move around.";
   lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
   pos.y += font_rom8x16.height;
-  string = "one step between print layers, use red and green knobs";
+  string = "In layer mode, turn the blue knob to move";
   lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
   pos.y += font_rom8x16.height;
-  string = "to move 4 or 16 steps.";
+  string = "up or down by one layer.";
   lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
+  pos.y += font_rom8x16.height;
+  string = "Use green or red knob to move faster";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
+  pos.y += font_rom8x16.height;
+  string = "through layers.";
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_WHITE);
+
+  pos.x = BLUE_KNOB_POS;
+  pos.y = SCREEN_HEIGHT - font_rom8x16.height;
+  lcd_print_string("BACK", pos, &font_rom8x16, COLOR_BLUE);
   lcd_print_frame_buffer();
 }
 // end of window print functions===============================================
@@ -578,7 +613,7 @@ void gui_print_layer(void)  // print active layer
   //print active layer num
   disp_pos_t text_pos = {400, 10};
   char text_string[STRING_MAXWIDTH];
-  sprintf(text_string, "%d/%d", gui_state.active_layer, gui_state.layer_count - 1);
+  sprintf(text_string, "%d/%d", gui_state.active_layer + 1, gui_state.layer_count);
   lcd_print_string(text_string, text_pos, &font_winFreeSystem14x16, COLOR_WHITE);
 
   if (layer->length < 2)
@@ -604,6 +639,19 @@ void gui_print_layer(void)  // print active layer
       //lcd_print_frame_buffer();  // send it to buffer
     }
   gcode_free_layer(layer);
+
+  disp_pos_t pos;
+  pos.y = SCREEN_HEIGHT - font_rom8x16.height;
+  pos.x = RED_KNOB_POS;
+  char string[] = {0x0f, 'F', 'I', 'L', 'E', ' ',
+      'I', 'N', 'F', 'O', ' ', 0x12, '1', '6', 'x', '\0'};
+  lcd_print_string(string, pos, &font_rom8x16, COLOR_RED);
+  pos.x = GREEN_KNOB_POS;
+  char string2[] =  {0x12, '4', 'x', '\0'};
+  lcd_print_string(string2 , pos, &font_rom8x16, COLOR_GREEN);
+  pos.x = BLUE_KNOB_POS;
+  string2[1] = '1';
+  lcd_print_string(string2, pos, &font_rom8x16, COLOR_BLUE);
   lcd_print_frame_buffer();  // send it to display
 }
 
